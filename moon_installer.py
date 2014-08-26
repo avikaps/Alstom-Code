@@ -15,7 +15,7 @@ import MultipartPostHandler
 
 
 # Print variables are used to capture all the default statements
-VERSION = "%prog 0.3 Copyright (C) 2014 ALSTOM TRANSPORT"
+VERSION = "%prog 0.4 Copyright (C) 2014 ALSTOM TRANSPORT"
 
 USAGE = "Usage: %prog [LOCATION] [PARAMETER(s)...] [SERVICE] "
 
@@ -63,18 +63,18 @@ ERROR_204 = "\n[ERROR:204] - P_MOON_PRIVATE_IP_BASE.txt FILE NOT FOUND"
 ERROR_205 = "\n[ERROR:205] - IP IS NOT GENERATED"
 ERROR_206 = "\n[ERROR:206] - INVALID INPUT - IP COMPUTATION FAILED AND EXIT"
 ERROR_207 = "\n[ERROR:207] - IP COMPUTATION FAILED AND EXIT!!"
-ERROR_208 = "\n[ERROR:208] - BINARY FILE MISSING TO WRITE FRAM"
+ERROR_208 = "\n[ERROR:208] - MISSING BINARY FILE FOR THIS SERVICE"
 ERROR_209 = "\n[ERROR:209] - PARAMETER NOT ASSOCIATED WITH THIS SERVICE"
 ERROR_210 = "\n[ERROR:210] - INCORRECT SERVICE OPTION PROVIDED"
 ERROR_211 = "\n[ERROR:211] - FILE PROVIDED CANNOT BE OPENED"
 ERROR_212 = "\n[ERROR:212] - WRITE CONFIG REQUIRES 'tar.gz' FILE"
+ERROR_213 = "\n[ERROR:213] - OUTPUT IS MISSING"
+ERROR_214 = "\n[ERROR:214] - INPUT IS MISSING"
+
 
 #HTTP ERROR HANDLING CODES
 ERROR_300 = "\n[ERROR:300] - CONNECTION WAS ATTEMPTED TO UNREACHABLE NETWORK"
 ERROR_301 = "\n[ERROR:301] - FAILED TO RECEIVE WEB-SERVER RESPONSE AND EXIT"
-ERROR_302 = "\n[ERROR:302] - "
-ERROR_303 = "\n[ERROR:303] - "
-ERROR_304 = "\n[ERROR:304] - "
 
 
 # Main function for Option paring
@@ -175,10 +175,12 @@ def main():
 
 
 def write_parameter_check(inputfile, outputfile):
-    """write_parameter_check description"""
+    """write_parameter_check this checks the parameters required by
+    write services"""
     try:
         if inputfile is None:
-            sys.exit(ERROR_209)
+            print WRITE_USAGE
+            sys.exit(ERROR_214)
         elif not (outputfile is None):
             sys.exit(ERROR_209)
         elif not inputfile.endswith('.bin'):
@@ -190,20 +192,23 @@ def write_parameter_check(inputfile, outputfile):
 
 
 def read_parameter_check(inputfile, outputfile):
-    """read_parameter_check description"""
+    """read_parameter_check - this checks the parameters required by
+    read services"""
     try:
         if outputfile is None:
-            sys.exit(ERROR_209)
+            print READ_USAGE
+            sys.exit(ERROR_213)
         elif not (inputfile is None):
             sys.exit(ERROR_209)
         else:
-            print "All checks passed"
+            print "\nAll checks passed"
     except Exception, raised_exception:
-        print "Exception is :", raised_exception
+        print "\nException is :", raised_exception
 
 
 def check_paramters_required(opt_str, inputfile, outputfile):
-    """check_paramters_required description"""
+    """check_paramters_required checks what all parameters are required
+    by each service for its uninteruppted execution."""
     if opt_str == '--write-config':
         try:
             if inputfile is None:
@@ -286,7 +291,8 @@ def read_fram(host_ip, output_path, memory_type, board_type, serial):
 
 
 def write_file_content(file_path, file_content):
-    """Write the content to the file"""
+    """Writes the content to the file - called by read_fram module but
+    indirectly used by read_crc, read_fuses and read_gid modules."""
     file_handler = open(file_path, "wb")
     file_handler.write(file_content)
     file_handler.close()
@@ -322,8 +328,7 @@ def config_ip(option, opt_str, value, parser):
     channel type of the target machine provided by the user."""
     try:
         serial = int(parser.values.serial)
-    except TypeError, ValueError:
-        # print "\nProvide an integer SCU Serial Number between 1 to 65535"
+    except ValueError:
         sys.exit(ERROR_201)
     channel = parser.values.channel
     host_ip = compute_ip(serial, channel)
@@ -342,8 +347,6 @@ def format_flash(option, opt_str, value, parser):
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nChecking Flash Memory . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     url = 'http://' + host_ip + '/cgi-bin/SATA_Format.cgi'
     try:
         response = urllib2.urlopen(url)
@@ -377,23 +380,20 @@ def check_response_received(response):
 
 
 def write_config(option, opt_str, value, parser):
-    """write_config description"""
+    """write_config checks the partition in the SATA and writes the
+    configuration files in SATA. This function requires Input config file
+    as a paramter and the same will get uploaded to the SCU by Web-Server"""
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nWriting Configuration file to Flash . . ."
     print "\nComputed Host-IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     url = 'http://' + host_ip + '/cgi-bin/SATA_Config.cgi'
     input_path = parser.values.inputfilepath
     board_type = parser.values.channel
-    try:
-        params = {'BoardType': board_type,
-                  'SataConfigFile': file(input_path, 'rb')}
-    except IOError:
-        sys.exit(ERROR_211)
+    params = {'BoardType': board_type,
+              'SataConfigFile': file(input_path, 'rb')}
     opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
     try:
         response = opener.open(url, params)
@@ -412,18 +412,10 @@ def read_fuses(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    try:
-        output_path = parser.values.outputfilepath
-        # if not(output_path is None):
-        print output_path
-    except:
-        print READ_USAGE
-        sys.exit(1)
+    output_path = parser.values.outputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nReading FUSES Information . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'FUSE'
     board_type = parser.values.channel
     serial = parser.values.serial
@@ -436,17 +428,10 @@ def read_crc(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    try:
-        if not(parser.values.outputfilepath is None):
-            output_path = parser.values.outputfilepath
-    except:
-        print READ_USAGE
-        sys.exit(1)
+    output_path = parser.values.outputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nReading CRC Information . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'CRC'
     board_type = parser.values.channel
     serial = parser.values.serial
@@ -459,17 +444,10 @@ def read_gid(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    try:
-        if not(parser.values.outputfilepath is None):
-            output_path = parser.values.outputfilepath
-    except:
-        print READ_USAGE
-        sys.exit(1)
+    output_path = parser.values.outputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nReading GID Information . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'GID'
     board_type = parser.values.channel
     serial = parser.values.serial
@@ -483,22 +461,10 @@ def write_fuses(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    if (parser.values.inputfilepath is None):
-        print WRITE_USAGE
-        sys.exit(1)
-    else:
-        input_path = parser.values.inputfilepath
-        if input_path.endswith(".bin"):
-            print "\nAll checks passed"
-        else:
-            print "\nNo binary file supplied as input parameter"
-            sys.exit(1)
     input_path = parser.values.inputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nWriting FUSES Information . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'FUSE'
     board_type = parser.values.channel
     write_fram(host_ip, input_path, memory_type, board_type)
@@ -511,17 +477,10 @@ def write_crc(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    try:
-        if not(parser.values.inputfilepath is None):
-            input_path = parser.values.inputfilepath
-    except:
-        print WRITE_USAGE
-        sys.exit(1)
+    input_path = parser.values.inputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nWriting CRC Information . . ."
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'CRC'
     board_type = parser.values.channel
     write_fram(host_ip, input_path, memory_type, board_type)
@@ -534,17 +493,10 @@ def write_gid(option, opt_str, value, parser):
     check_paramters_required(opt_str,
                              parser.values.inputfilepath,
                              parser.values.outputfilepath)
-    try:
-        if not(parser.values.inputfilepath is None):
-            input_path = parser.values.inputfilepath
-    except:
-        print WRITE_USAGE
-        sys.exit(1)
+    input_path = parser.values.inputfilepath
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nWriting GID Information . . ."
     print "\Computed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     memory_type = 'GID'
     board_type = parser.values.channel
     write_fram(host_ip, input_path, memory_type, board_type)
@@ -581,8 +533,6 @@ def download(option, opt_str, value, parser):
     print "\nDownload file from SATA . . ."
     host_ip = compute_ip(parser.values.serial, parser.values.channel)
     print "\nComputed host IP is : ", host_ip
-    # host_ip = '10.107.11.184'  # Subjected to change ip -->> host_ip
-    # print "\nNot using the calculated IP but a default one :", host_ip
     url = 'http://' + host_ip + '/cgi-bin/SATA_Upload.cgi'
     input_path = parser.values.inputfilepath
     output_path = parser.values.outputfilepath
@@ -600,10 +550,6 @@ def download(option, opt_str, value, parser):
         sys.exit(ERROR_301)
     else:
         file_content = response.read()
-    filename = 'SCU_'+serial+'_Board_'+board_type+'_'+memory_type+'.bin'
-    if output_path.endswith(".bin"):
-        write_file_content(output_path, file_content)
-    else:
         ensure_dir(output_path)
         file_path = create_dir(output_path, filename)
         write_file_content(file_path, file_content)
@@ -627,17 +573,14 @@ def compute_ip(serial, channel):
         byte_1 = ((base_ip.split('.', 1))[0])
         if channel == 'A':
             byte_2 = str((int((base_ip.split('.', 1))[1]) & 0xFC) | 2)
-            # print "IP of Channel A is : ", ip_channel_a
             ip_channel_a = byte_1 + '.' + byte_2 + '.' + byte_3 + '.' + byte_4
             return ip_channel_a
         if channel == 'B':
             byte_2 = str((int((base_ip.split('.', 1))[1]) & 0xFC) | 3)
-            # print "IP of Channel B is : ", ip_channel_b
             ip_channel_b = byte_1 + '.' + byte_2 + '.' + byte_3 + '.' + byte_4
             return ip_channel_b
         if channel == 'G':
             byte_2 = str((int((base_ip.split('.', 1))[1]) & 0xFC) | 1)
-            # print "IP of Gateway is : ", ip_gateway
             ip_gateway = byte_1 + '.' + byte_2 + '.' + byte_3 + '.' + byte_4
             return ip_gateway
         else:
