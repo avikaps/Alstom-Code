@@ -1,0 +1,23 @@
+python moon_installer_4.py --serial 0014 --board-type G --config-ip
+python moon_installer_4.py --serial 0014 --board-type G --format-flash
+python moon_installer_4.py --serial 0014 --board-type G --input "C:\Avi Kapoor\Testing\G\G.tar.gz" --write-config
+
+python moon_installer_4.py --serial 0014 --board-type A --config-ip
+python moon_installer_4.py --serial 0014 --board-type A --format-flash
+python moon_installer_4.py --serial 0014 --board-type A --input "C:\Avi Kapoor\Testing\A\A.tar.gz" --write-config
+python moon_installer_4.py --serial 0014 --board-type A --input "C:\Avi Kapoor\Testing\A\Testing_FUSE_A.bin" --write-fuses
+python moon_installer_4.py --serial 0014 --board-type A --input "C:\Avi Kapoor\Testing\A\Testing_GID_A.bin" --write-gid
+python moon_installer_4.py --serial 0014 --board-type A --input "C:\Avi Kapoor\Testing\A\Testing_CRC_A_correct.bin" --write-crc
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-fuses
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-gid
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-crc
+
+python moon_installer_4.py --serial 0014 --board-type B --config-ip
+python moon_installer_4.py --serial 0014 --board-type B --format-flash
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\B.tar.gz" --write-config
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_FUSE_B.bin" --write-fuses
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_GID_B.bin" --write-gid
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_CRC_B.bin" --write-crc
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-fuses
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-gid
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-crc

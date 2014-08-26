@@ -1,0 +1,9 @@
+python moon_installer_4.py --serial 0014 --board-type B --config-ip
+python moon_installer_4.py --serial 0014 --board-type B --format-flash
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\B.tar.gz" --write-config
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_FUSE_B.bin" --write-fuses
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_GID_B.bin" --write-gid
+python moon_installer_4.py --serial 0014 --board-type B --input "C:\Avi Kapoor\Testing\B\Testing_CRC_B.bin" --write-crc
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-fuses
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-gid
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-crc

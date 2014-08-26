@@ -1,0 +1,3 @@
+python moon_installer_4.py --serial 0014 --board-type G --config-ip
+python moon_installer_4.py --serial 0014 --board-type G --format-flash
+python moon_installer_4.py --serial 0014 --board-type G --input "C:\Avi Kapoor\Testing\G\G.tar.gz" --write-config

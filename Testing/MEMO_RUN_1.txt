@@ -1,0 +1,6 @@
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-fuses
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-gid
+python moon_installer_4.py --serial 0014 --board-type A --output "C:\Avi Kapoor\Testing\Download" --read-crc
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-fuses
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-gid
+python moon_installer_4.py --serial 0014 --board-type B --output "C:\Avi Kapoor\Testing\Download" --read-crc
